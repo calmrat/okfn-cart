@@ -67,8 +67,8 @@ def buy_1_get_y_pct_off_z(cart, product, discounted=None, pct_off=1.0):
         return None
     else:
         # product,discounted are in the cart; continue validating the discount
-        logger.info('Valid buy 1 {} get {}%% off {} discount'.format(
-            product, discounted, (pct_off * 100)))
+        logger.info('Valid "buy 1 {} get {}% off {}" discount'.format(
+            product, (pct_off * 100), discounted))
 
     # we know we have at least one of both and all prices are the same...
     # so we'll just take the first of the product as the template for id,price
@@ -101,7 +101,7 @@ def buy_x_get_y(cart, product, buy=1, get=1):
         return None
     else:
         # product is in the cart; continue validating the discount
-        logger.info('Valid buy {} {} get {} discount'.format(
+        logger.info('Valid "buy {} {} get {}" discount'.format(
             product, buy, get))
 
     # product is in the cart (buy + get) or more times
