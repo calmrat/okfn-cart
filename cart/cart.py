@@ -58,7 +58,7 @@ def load_product_csv(products_csv):
         strawberries,2.00
         snickers bar,0.70
 
-    Price column must be converted to python float type after loading.
+    Price column is converted to python float type after loading.
     '''
     fnames = ['id', 'price']
     exists = os.path.exists
@@ -104,7 +104,7 @@ class Cart(object):
     def receipt(self):
         '''
         Analyse cart contents, summing products quantities, price and
-        discounts and show a "receipt" that describes all transactions
+        discounts and return a "receipt" which contains all transactions
         and final cost of cart contents.
         '''
         total, discounts, grand_total = 0.0, 0.0, 0.0

@@ -74,15 +74,15 @@ def buy_1_get_y_pct_off_z(cart, product, discounted=None, pct_off=1.0):
     # so we'll just take the first of the product as the template for id,price
     # same with the discounted product
     d_id, d_price = cart[discounted][0]['id'], cart[discounted][0]['price']
-    discount_price = -1 * (d_price * 0.2)
+    discount_price = -1 * (d_price * pct_off)
     return [{'id': d_id, 'price': discount_price}]
 
 
 def buy_x_get_y(cart, product, buy=1, get=1):
     '''
-    Buy One Get One Free
+    Buy X Get Y Free (eg, Buy 1 get 1 free)
 
-    subtract the price of 1 price of product for every
+    Subtract the price of 1 price of product for every
     2 of product in the cart.
     '''
 
