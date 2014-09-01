@@ -8,7 +8,7 @@ Specification: https://gist.github.com/adamamyl/5cc6396c8029e8776a17
    :target: https://travis-ci.org/kejbaly2/okfn-cart
 
 
-Installation::
+**Installation**::
 
     virtualenv ~/virtenv-okfn-cart
     source ~/virtenv-okfn-cart/bin/activate
@@ -17,13 +17,14 @@ Installation::
     python setup.py develop
 
 
-Testing::
+**Testing**::
 
     pip install pytest
     py.test tests.py
 
 
-Example Usage::
+**Example Usage**::
+
     from cart import Cart, load_product_csv
     from cart.discounts import buy_1_get_y_pct_off_z
 
