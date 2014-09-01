@@ -135,16 +135,18 @@ class Cart(object):
         '''
         Adds products, with original sale price to the cart.
 
-        Accepts input only in the form of CSV string or file.
+        Accepts input only in the form of list of dicts, with each
+        dict containing the following structure::
 
-        Returns pointer to self :class:`Cart` object.
+            {'id': 'product_name',
+             'price': float(product_price)
+            }
 
-        :param products: string or file containing `product,price` csv to
-                         add to cart
+        :param products: list of product,price dicts as shown above
 
         Usage::
             >>> cart = Cart()
-            >>> cart.add_products('sample_products.csv')
+            >>> cart.add_products([{'id': 'snickers bar', 'price': 0.70}])
 
         '''
         products = products if isinstance(products, list) else [products]
@@ -160,6 +162,16 @@ class Cart(object):
         used in cart.contents.
 
         Only one discount per product is permitted!
+
+        :param discounts: list of product,price dicts as used in
+                          :method:`add_products`
+
+        Usage::
+            >>> cart = Cart()
+            >>> cart.add_products([{'id': 'snickers bar', 'price': 0.70}])
+            >>> cart.add_products([{'id': 'snickers bar', 'price': 0.70}])
+            >>> cart.apply_discounts([{'id': 'snickers bar', 'price': -0.70}])
+
         '''
         logger.debug("Applying Discount to cart")
         if not discounts:
