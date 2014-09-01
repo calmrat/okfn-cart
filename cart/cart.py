@@ -81,10 +81,52 @@ def load_product_csv(products_csv):
 class Cart(object):
     _contents = None
     _discounts = None
+    _receipt = None
 
     def __init__(self):
         self._contents = []
         self._discounts = set()
+        self._checkout = False
+        self._receipt = []
+
+    @property
+    def contents(self):
+        ''' Group cart contents by their id and return cart contents '''
+        contents = sorted(self._contents, key=lambda x: x['id'])
+        gby = groupby(contents, lambda x: x['id'])
+        p_grouped = {k: list(g) for k, g in gby}
+        return p_grouped
+
+    @property
+    def receipt(self):
+        '''
+        Analyse cart contents, summing products quantities, price and
+        discounts and show a "receipt" that describes all transactions
+        and final cost of cart contents.
+        '''
+        total, discounts, grand_total = 0.0, 0.0, 0.0
+        receipt = []
+        # Force cart contents to be sorted. Sorted cart is required to ensure
+        # we properly groupby product id.
+        # Then group all the products by their id into buckets.
+        # Cart includes all discounts already, too.
+        # Then calculate the cart cost and store in a simple 'receipt' struct
+        contents = self.contents
+        for product, line_items in contents.iteritems():
+            for line_item in sorted(line_items, key=lambda x: x['price'],
+                                    reverse=True):
+                _id, price = line_item['id'], line_item['price']
+                if price < 0:
+                    discounts += price
+                else:
+                    total += price
+                receipt.append({'id': _id, 'price': price})
+                grand_total += price
+        receipt.append({'id': 'total', 'price': total})
+        receipt.append({'id': 'discounts', 'price': discounts})
+        receipt.append({'id': 'grand_total', 'price': grand_total})
+        self._receipt = receipt
+        return receipt
 
     def add_products(self, products):
         '''
@@ -109,14 +151,6 @@ class Cart(object):
         self._contents.extend(products)
         logger.debug("Cart Contents: {}".format(self.contents))
 
-    @property
-    def contents(self):
-        ''' Group cart contents by their id and return cart contents '''
-        contents = sorted(self._contents, key=lambda x: x['id'])
-        gby = groupby(contents, lambda x: x['id'])
-        p_grouped = {k: list(g) for k, g in gby}
-        return p_grouped
-
     def apply_discounts(self, discounts):
         '''
         discount is specified the same [product:price] list of dicts as
@@ -136,29 +170,54 @@ class Cart(object):
             self.add_products(discount)
             self._discounts.add(_id)
 
-    def receipt(self):
+    def checkout(self):
         '''
-        Analyse cart contents, summing products quantities, price and
-        discounts and show a "receipt" that describes all transactions
-        and final cost of cart contents.
+        Close/Lock the current cart status and generate the final
+        receipt state.
         '''
-        # Force cart contents to be sorted. Sorted cart is required to ensure
-        # we properly groupby product id.
-        # Then group all the products by their id into buckets.
-        # Cart includes all discounts already, too.
-        contents = self.contents
-        # Then calculate the cart cost and print the transaction log 'receipt'.
-        receipt = ''
+        if self._checkout:
+            # shouldn't be able to checkout more than once... no turning back!
+            raise RuntimeError('Already checked out! invalid action!')
+        receipt = self.receipt
+        self._checkout = True
+        return receipt
+
+    def __repr__(self):
+        '''
+        return a csv string that can be used as input into :class:`Cart`
+        to recreate the exact contents of the current cart, including
+        discounts.
+        '''
+        receipt = self.receipt
+        cart_csv = ['id, price']
+        for item in receipt[:-3]:
+            # include everything except the last 3 items, which are
+            # not actual product or discount data
+            _id = item['id']
+            price = str(item['price'])
+            cart_csv.append('{}, {}'.format(_id, price))
+        return '\n'.join(cart_csv)
+
+    def __str__(self):
+        '''
+        Prepare the human readable 'receipt' which shows all products in
+        the cart, discounts and total price details.
+        '''
+        receipt_raw = self.receipt[:]
+        receipt = '{}\nReceipt\n{}\n'.format('-' * 30, '-' * 30)
         total, discounts = 0.0, 0.0
-        for product, line_items in contents.iteritems():
-            for line_item in sorted(line_items, key=lambda x: x['price'],
-                                    reverse=True):
-                _id, price = line_item['id'], line_item['price']
-                if price < 0:
-                    discounts += price
-                else:
-                    total += price
-                receipt += '{:>20} {:>8,.2f}\n'.format(_id, price)
+        # we know the bottom three items are, in reverse order:
+        # grand_total, discounts, total
+        # the the remainins line items are the products (and discounts)
+        # grouped by 'product id'
+        last_three = ['total', 'discounts', 'grand_total']
+        assert last_three == [x['id'] for x in receipt_raw[-3:]]
+        grand_total = receipt_raw.pop(-1)['price']
+        discounts = receipt_raw.pop(-1)['price']
+        total = receipt_raw.pop(-1)['price']
+        for line in receipt_raw:
+            _id, price = line['id'], line['price']
+            receipt += '{:>20} {:>8,.2f}\n'.format(_id, price)
         receipt += '-' * 30
         receipt += '\nTotal {:>23}'.format(total)
         receipt += '\nDiscounts {:>19,.2f}\n'.format(discounts)
@@ -166,13 +225,3 @@ class Cart(object):
         grand_total = total + discounts
         receipt += '\nGrand Total  {:>16,.2f}'.format(grand_total)
         return receipt
-
-    def __repr__(self):
-        return self.__str__()
-
-    def __str__(self):
-        '''
-        Prepare the 'receipt' which shows all products in the cart,
-        discounts and total price details
-        '''
-        return self.receipt()
