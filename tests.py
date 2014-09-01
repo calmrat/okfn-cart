@@ -127,9 +127,13 @@ def test_buy_1_get_y_pct_off_z():
 
     cart = Cart()
 
-    # add the same contents several times to fill up the cart with
+    # add the product,price contents to fill up the cart with
     # enough product to verify all spec'd discounts.
     cart.add_products(products)
+
+    # should be 6 items in the cart (+1 discounts)
+    assert len(cart._contents) == 5
+
     # * get 20% off a Snickers bar if you buy a Mars bar at the same time
     discounts = buy_1_get_y_pct_off_z(cart.contents, 'mars bar',
                                       discounted='snickers bar', pct_off=0.2)
@@ -138,7 +142,7 @@ def test_buy_1_get_y_pct_off_z():
 
     cart.apply_discounts(discounts)
 
-    # should still be 17 items in the cart (+2 discounts)
+    # should be 6 items in the cart (+1 discounts)
     assert len(cart._contents) == 6
 
     receipt = cart.checkout()
@@ -169,7 +173,7 @@ def test_csv_as_string():
 
     cart = Cart()
 
-    # add the same contents several times to fill up the cart with
+    # add the product,price contents to fill up the cart with
     # enough product to verify all spec'd discounts.
     cart.add_products(products)
 
