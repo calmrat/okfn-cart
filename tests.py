@@ -154,3 +154,27 @@ def test_buy_1_get_y_pct_off_z():
     assert round(receipt[-3]['price'], 2) == 7.24
 
     print str(cart)
+
+
+def test_csv_as_string():
+    '''
+    test that we can load product csv data from \n separated string
+    and while we're at it, test that cart.__repr__ produces expected
+    csv string representation.
+    '''
+    from cart import Cart, load_product_csv
+
+    products_csv = 'sample_products.csv'
+    products = load_product_csv(products_csv)
+
+    cart = Cart()
+
+    # add the same contents several times to fill up the cart with
+    # enough product to verify all spec'd discounts.
+    cart.add_products(products)
+
+    csv_str = cart.__repr__()
+
+    s = lambda x: x['id']
+    # sort, since cart sorts and original csv sample isn't pre-sorted
+    assert sorted(products, key=s) == sorted(load_product_csv(csv_str), key=s)

@@ -67,8 +67,11 @@ def load_product_csv(products_csv):
         # if this is a path to local file, open it
         with open(products_csv) as csv_file:
             products_csv = csv_file.readlines()
+    else:
+        # we assume we have a text blob with rows split by '\n' newline chars
+        products_csv = [s.strip() for s in products_csv.split('\n')]
 
-    # load the csv (as string) passed in into list of dicts
+    # load the csv (as list of strings) passed in into list of dicts
     products = list(csv.DictReader(products_csv, fieldnames=fnames))
 
     # convert 'price' column to float
@@ -189,7 +192,8 @@ class Cart(object):
         discounts.
         '''
         receipt = self.receipt
-        cart_csv = ['id, price']
+        # don't include fieldnames in header; header is always manually set
+        cart_csv = []
         for item in receipt[:-3]:
             # include everything except the last 3 items, which are
             # not actual product or discount data
